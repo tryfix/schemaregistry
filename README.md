@@ -1,6 +1,6 @@
 # Schema Registry Client
 
-[![GoDoc](https://godoc.org/github.com/tryfix/schema-registry?status.svg)](https://godoc.org/github.com/tryfix/schema-registry)
+[![GoDoc](https://godoc.org/github.com/tryfix/schemaregistry?status.svg)](https://godoc.org/github.com/tryfix/schemaregistry)
 
 This repository contains wrapper function to communicate 
 Confluent's Kafka schema registry via REST API and 
