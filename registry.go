@@ -1,7 +1,9 @@
 package schemaregistry
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"sync"
 
 	registry "github.com/landoop/schema-registry"
@@ -176,17 +178,17 @@ func (r *Registry) Register(subject string, version int, decoder jsonDecoder) er
 //
 // Newly Created Schemas will register in background and application does not require any restart
 func (r *Registry) Sync() error {
-	//if r.options.backGroundSync {
-	//	bgSync, err := newSync(r.options.bootstrapServers, r.options.storageTopic, r)
-	//	if err != nil {
-	//		return err
-	//	}
-	//
-	//	if err := bgSync.start(); err != nil {
-	//		return err
-	//	}
-	//}
-	//
+	if r.options.backGroundSync {
+		bgSync, err := newSync(r.options.bootstrapServers, r.options.storageTopic, r)
+		if err != nil {
+			return err
+		}
+
+		if err := bgSync.start(); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -226,4 +228,27 @@ func (r *Registry) GenericEncoder() *GenericEncoder {
 	return &GenericEncoder{
 		registry: r,
 	}
+}
+
+func (r *Registry) Print() {
+	b := new(bytes.Buffer)
+	table := tablewriter.NewWriter(b)
+	table.SetHeader([]string{`Schema Id`, `subject`, `version`, `json decoder`})
+
+	for _, subject := range r.schemas {
+		for _, version := range subject {
+			table.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT})
+			table.SetAutoFormatHeaders(true)
+			table.Append([]string{
+				fmt.Sprint(version.subject.Id),
+				fmt.Sprint(version.subject.Subject),
+				fmt.Sprint(Version(version.subject.Version)),
+				fmt.Sprint(version.subject.JsonDecoder != nil),
+				//fmt.Sprint(version.subject.Schema),
+			})
+		}
+
+	}
+	table.Render()
+	r.logger.Info(`schemaregistry.registry`, fmt.Sprintf("schemas\n%s", b.String()))
 }
