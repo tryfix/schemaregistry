@@ -1,14 +1,12 @@
 package schemaregistry
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/tryfix/kstream/data"
 	"sort"
 
 	"github.com/Shopify/sarama"
-	"github.com/olekukonko/tablewriter"
 	"github.com/tryfix/kstream/consumer"
 )
 
@@ -83,27 +81,7 @@ func (s *backgroundSync) startConsumer(events <-chan consumer.Event, syncDone ch
 }
 
 func (s *backgroundSync) print() {
-	b := new(bytes.Buffer)
-	table := tablewriter.NewWriter(b)
-	table.SetHeader([]string{`Schema Id`, `subject`, `version`, `json decoder`})
-
-	s.registry.logger.Warn(``, s.registry.schemas)
-	for _, subject := range s.registry.schemas {
-		for _, version := range subject {
-			table.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT})
-			table.SetAutoFormatHeaders(true)
-			table.Append([]string{
-				fmt.Sprint(version.subject.Id),
-				fmt.Sprint(version.subject.Subject),
-				fmt.Sprint(Version(version.subject.Version)),
-				fmt.Sprint(version.subject.JsonDecoder != nil),
-				//fmt.Sprint(version.subject.Schema),
-			})
-		}
-
-	}
-	table.Render()
-	s.registry.logger.Info(`schemaregistry.sync`, fmt.Sprintf("schemas registered\n%s", b.String()))
+	s.registry.Print()
 }
 
 func (s *backgroundSync) apply(keyByt []byte, valByt []byte) {
