@@ -8,7 +8,7 @@ require (
 	github.com/linkedin/goavro v2.1.0+incompatible
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/tryfix/errors v1.0.0
-	github.com/tryfix/kstream v1.0.0
+	github.com/tryfix/kstream v1.1.2
 	github.com/tryfix/log v1.0.2
 	gopkg.in/linkedin/goavro.v1 v1.0.5 // indirect
 )
