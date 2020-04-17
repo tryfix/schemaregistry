@@ -37,7 +37,7 @@ func newSync(bootstrapServers []string, storageTopic string, registry *Registry)
 	builder.Config().BootstrapServers = bootstrapServers
 	builder.Config().Logger = registry.logger
 
-	c, err := builder.Build(nil)
+	c, err := builder.Build()
 	if err != nil {
 		return nil, err
 	}
