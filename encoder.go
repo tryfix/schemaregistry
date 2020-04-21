@@ -98,16 +98,16 @@ func decode(encoders map[int]*Encoder, data []byte) (interface{}, error) {
 
 	native, _, err := encoder.codec.NativeFromBinary(data[5:])
 	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`schema id [%d] dose not registred`, schemaID))
+		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from binary for schema id [%d] failed`, schemaID))
 	}
 
 	byt, err := encoder.codec.TextualFromNative(nil, native)
 	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`textual from native failed due to %+v`, err))
+		return nil, errors.WithPrevious(err, fmt.Sprintf(`textual from native for schema id [%d] failed`, schemaID))
 	}
 
 	if encoder.subject.JsonDecoder == nil {
-		return nil, errors.New(fmt.Sprintf(`json decoder does not exist for schema %d`, schemaID))
+		return nil, errors.New(fmt.Sprintf(`json decoder does not exist for schema id %d`, schemaID))
 	}
 
 	return encoder.subject.JsonDecoder(byt)
