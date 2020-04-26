@@ -70,17 +70,22 @@ func (s *Encoder) Schema() string {
 func encode(subjectId int, codec *goavro.Codec, data interface{}) ([]byte, error) {
 	byt, err := json.Marshal(data)
 	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`json marshal failed due to %+v`, err))
+		return nil, errors.WithPrevious(err, fmt.Sprintf(`json marshal failed for schema [%d]`, subjectId))
 	}
 
 	native, _, err := codec.NativeFromTextual(byt)
 	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from textual failed due to %+v`, err))
+		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from textual failed for schema [%d]`, subjectId))
 	}
 
 	magic := encodePrefix(subjectId)
 
-	return codec.BinaryFromNative(magic, native)
+	bin, err := codec.BinaryFromNative(magic, native)
+	if err != nil {
+		return nil, errors.WithPrevious(err, fmt.Sprintf(`binary from native failed for schema [%d]`, subjectId))
+	}
+
+	return bin, nil
 }
 
 // decode returns the decoded go interface of avro encoded message and error if its unable to decode
