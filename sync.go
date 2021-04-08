@@ -153,6 +153,9 @@ func (s *backgroundSync) apply(keyByt []byte, valByt []byte) {
 				})
 
 				if err != nil {
+					s.registry.logger.Error(`schemaregistry.sync`,
+						fmt.Sprintf(`error composing encoder due to: %v`, err))
+					return
 				}
 
 				encoder[value.Version] = e
