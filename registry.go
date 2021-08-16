@@ -237,10 +237,6 @@ func (r *Registry) Print() {
 
 	for _, subject := range r.schemas {
 		for _, version := range subject {
-			if version == nil {
-				continue
-			}
-
 			table.SetColumnAlignment([]int{tablewriter.ALIGN_LEFT})
 			table.SetAutoFormatHeaders(true)
 			table.Append([]string{
