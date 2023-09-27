@@ -38,7 +38,7 @@ type jsonDecoder func(data []byte) (v interface{}, err error)
 
 //Subject holds the Schema information of the registered subject
 type Subject struct {
-	Schema      string      `json:"subject"` // The actual AVRO subject
+	Schema      string      `json:"schema"`  // The actual AVRO subject
 	Subject     string      `json:"subject"` // Subject where the subject is registered for
 	Version     int         `json:"version"` // Version within this subject
 	Id          int         `json:"id"`      // Registry's unique id
