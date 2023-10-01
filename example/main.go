@@ -8,8 +8,8 @@
 package main
 
 import (
+	"github.com/HADLakmal/schemaregistry"
 	"github.com/tryfix/log"
-	"github.com/tryfix/schemaregistry"
 	"time"
 )
 
