@@ -153,7 +153,7 @@ func decodeHamba(encoders map[int]*Encoder, data []byte) (interface{}, error) {
 		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from binary for schema id [%d] failed`, schemaID))
 	}
 	var v interface{}
-	err = encoder.api.Unmarshal(schema, data[5:], v)
+	err = encoder.api.Unmarshal(schema, data[5:], &v)
 	if err != nil {
 		return nil, errors.WithPrevious(err, fmt.Sprintf(`data unmarshal error, schema : [%d] failed`, schemaID))
 	}
