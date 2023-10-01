@@ -11,6 +11,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+
 	"github.com/hamba/avro/v2"
 
 	"github.com/linkedin/goavro"
@@ -42,10 +43,10 @@ func NewEncoder(reg *Registry, subject *Subject) (*Encoder, error) {
 }
 
 // Encode return a byte slice with a avro encoded message. magic byte and schema id will be appended to its beginning
+//
 //	╔════════════════════╤════════════════════╤══════════════════════╗
 //	║ magic byte(1 byte) │ schema id(4 bytes) │ AVRO encoded message ║
 //	╚════════════════════╧════════════════════╧══════════════════════╝
-//
 func (s *Encoder) Encode(data interface{}) ([]byte, error) {
 	return encodeHamba(s.subject.Id, s.codec.Schema(), data)
 }
@@ -65,7 +66,7 @@ func decodePrefix(byt []byte) int {
 	return int(binary.BigEndian.Uint32(byt[1:5]))
 }
 
-//Schema return the subject asociated with the Encoder
+// Schema return the subject asociated with the Encoder
 func (s *Encoder) Schema() string {
 	return s.subject.Schema
 }
@@ -96,7 +97,11 @@ func encodeHamba(subjectId int, schema string, data interface{}) ([]byte, error)
 	if err != nil {
 		return nil, errors.WithPrevious(err, fmt.Sprintf(`parse error for schema [%d]`, subjectId))
 	}
-	return avro.Marshal(sch, data)
+	native, err := avro.Marshal(sch, data)
+	if err != nil {
+		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from textual failed for schema [%d]`, subjectId))
+	}
+	return append(encodePrefix(subjectId), native...), nil
 }
 
 // decode returns the decoded go interface of avro encoded message and error if its unable to decode
