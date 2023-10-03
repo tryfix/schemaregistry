@@ -8,9 +8,10 @@
 package main
 
 import (
+	"time"
+
 	"github.com/HADLakmal/schemaregistry"
 	"github.com/tryfix/log"
-	"time"
 )
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := registry.Register(`com.org.events.test.TestTwo`, 1, func(data []byte) (v interface{}, err error) {
+	if err := registry.Register(`com.org.events.test.TestTwo`, 1, func(decoder schemaregistry.AvroDecoder, data []byte) (v interface{}, err error) {
 		return nil, nil
 	}); err != nil {
 		log.Fatal(err)

@@ -3,8 +3,9 @@ package schemaregistry
 import (
 	"bytes"
 	"fmt"
-	"github.com/olekukonko/tablewriter"
 	"sync"
+
+	"github.com/olekukonko/tablewriter"
 
 	registry "github.com/landoop/schema-registry"
 	"github.com/tryfix/log"
@@ -34,15 +35,15 @@ func (v Version) String() string {
 	return fmt.Sprint(int(v))
 }
 
-type jsonDecoder func(data []byte) (v interface{}, err error)
+type avroDecoder func(decoder AvroDecoder, data []byte) (v interface{}, err error)
 
-//Subject holds the Schema information of the registered subject
+// Subject holds the Schema information of the registered subject
 type Subject struct {
 	Schema      string      `json:"schema"`  // The actual AVRO subject
 	Subject     string      `json:"subject"` // Subject where the subject is registered for
 	Version     int         `json:"version"` // Version within this subject
 	Id          int         `json:"id"`      // Registry's unique id
-	JsonDecoder jsonDecoder `json:"json_decoder"`
+	AvroDecoder avroDecoder `json:"avro_decoder"`
 }
 
 type options struct {
@@ -62,7 +63,7 @@ type Registry struct {
 	logger  log.Logger
 }
 
-//Option is a type to host NewRegistry configurations
+// Option is a type to host NewRegistry configurations
 type Option func(*options)
 
 // WithBackgroundSync returns a Configurations to create a NewRegistry with kafka dynamic schema sync.
@@ -75,7 +76,7 @@ func WithBackgroundSync(bootstrapServers []string, storageTopic string) Option {
 	}
 }
 
-//WithLogger returns a Configurations to create a NewRegistry with given PrefixedLogger
+// WithLogger returns a Configurations to create a NewRegistry with given PrefixedLogger
 func WithLogger(logger log.Logger) Option {
 	return func(options *options) {
 		options.logger = logger
@@ -112,7 +113,7 @@ func NewRegistry(url string, opts ...Option) (*Registry, error) {
 }
 
 // Register registers the given subject, version and JSON value decoder to the Registry
-func (r *Registry) Register(subject string, version int, decoder jsonDecoder) error {
+func (r *Registry) Register(subject string, version int, decoder avroDecoder) error {
 	if _, ok := r.schemas[subject]; ok {
 		if _, ok := r.schemas[subject][version]; ok {
 			r.logger.Warn(`schemaregistry.registry`, fmt.Sprintf(`subject [%s][%s] already registred`, subject, Version(version)))
@@ -154,17 +155,14 @@ func (r *Registry) Register(subject string, version int, decoder jsonDecoder) er
 		Id:          clientSub.ID,
 		Version:     clientSub.Version,
 		Subject:     clientSub.Subject,
-		JsonDecoder: decoder,
+		AvroDecoder: decoder,
 	}
 
 	if r.schemas[subject] == nil {
 		r.schemas[subject] = make(map[int]*Encoder)
 	}
 
-	e, err := NewEncoder(r, s)
-	if err != nil {
-		return err
-	}
+	e := NewEncoder(r, s)
 
 	r.schemas[subject][version] = e
 	r.idMap[clientSub.ID] = e
@@ -243,7 +241,7 @@ func (r *Registry) Print() {
 				fmt.Sprint(version.subject.Id),
 				fmt.Sprint(version.subject.Subject),
 				fmt.Sprint(Version(version.subject.Version)),
-				fmt.Sprint(version.subject.JsonDecoder != nil),
+				fmt.Sprint(version.subject.AvroDecoder != nil),
 				//fmt.Sprint(version.subject.Schema),
 			})
 		}

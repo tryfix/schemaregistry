@@ -3,8 +3,9 @@ package schemaregistry
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/tryfix/kstream/data"
 	"sort"
+
+	"github.com/tryfix/kstream/data"
 
 	"github.com/Shopify/sarama"
 	"github.com/tryfix/kstream/consumer"
@@ -140,23 +141,17 @@ func (s *backgroundSync) apply(keyByt []byte, valByt []byte) {
 			if prv := previous(value.Version, encoder); prv != nil {
 
 				// assume this is only an encoder
-				if prv.subject.JsonDecoder == nil {
+				if prv.subject.AvroDecoder == nil {
 					return
 				}
 
-				e, err := NewEncoder(s.registry, &Subject{
+				e := NewEncoder(s.registry, &Subject{
 					Subject:     value.Subject,
 					Version:     value.Version,
 					Schema:      value.Schema,
 					Id:          value.Id,
-					JsonDecoder: prv.subject.JsonDecoder,
+					AvroDecoder: prv.subject.AvroDecoder,
 				})
-
-				if err != nil {
-					s.registry.logger.Error(`schemaregistry.sync`,
-						fmt.Sprintf(`error composing encoder due to: %v`, err))
-					return
-				}
 
 				encoder[value.Version] = e
 

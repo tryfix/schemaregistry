@@ -9,12 +9,10 @@ package schemaregistry
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hamba/avro/v2"
 
-	"github.com/linkedin/goavro"
 	"github.com/tryfix/errors"
 )
 
@@ -22,24 +20,20 @@ import (
 type Encoder struct {
 	subject  *Subject
 	registry *Registry
-	codec    *goavro.Codec
 	api      avro.API
 }
 
-// NewEncoder return the pointer to a Encoder for given Subject from the Registry
-func NewEncoder(reg *Registry, subject *Subject) (*Encoder, error) {
-	codec, err := goavro.NewCodec(subject.Schema)
-	if err != nil {
-		reg.logger.Error(fmt.Sprintf(`cannot init encoder due to codec failed due to %+v`, err))
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`cannot init encoder due to codec failed due to %+v`, err))
-	}
+type AvroDecoder interface {
+	Unmarshal(data []byte, in interface{}) error
+}
 
+// NewEncoder return the pointer to a Encoder for given Subject from the Registry
+func NewEncoder(reg *Registry, subject *Subject) *Encoder {
 	return &Encoder{
 		subject:  subject,
 		registry: reg,
-		codec:    codec,
 		api:      avro.DefaultConfig,
-	}, nil
+	}
 }
 
 // Encode return a byte slice with a avro encoded message. magic byte and schema id will be appended to its beginning
@@ -48,12 +42,21 @@ func NewEncoder(reg *Registry, subject *Subject) (*Encoder, error) {
 //	║ magic byte(1 byte) │ schema id(4 bytes) │ AVRO encoded message ║
 //	╚════════════════════╧════════════════════╧══════════════════════╝
 func (s *Encoder) Encode(data interface{}) ([]byte, error) {
-	return encodeHamba(s.subject.Id, s.codec.Schema(), data)
+	return encode(s.subject.Id, s.Schema(), data)
 }
 
 // Decode returns the decoded go interface of avro encoded message and error if its unable to decode
 func (s *Encoder) Decode(data []byte) (interface{}, error) {
-	return decodeHamba(s.registry.idMap, data)
+	return decode(s.registry.idMap, data)
+}
+
+// unmarshal value to struct
+func (s *Encoder) Unmarshal(data []byte, in interface{}) error {
+	schema, err := avro.Parse(s.Schema())
+	if err != nil {
+		return errors.WithPrevious(err, fmt.Sprintf(`schema parsing error for schema %s`, s.Schema()))
+	}
+	return s.api.Unmarshal(schema, data, in)
 }
 
 func encodePrefix(id int) []byte {
@@ -71,28 +74,7 @@ func (s *Encoder) Schema() string {
 	return s.subject.Schema
 }
 
-func encode(subjectId int, codec *goavro.Codec, data interface{}) ([]byte, error) {
-	byt, err := json.Marshal(data)
-	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`json marshal failed for schema [%d]`, subjectId))
-	}
-
-	native, _, err := codec.NativeFromTextual(byt)
-	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from textual failed for schema [%d]`, subjectId))
-	}
-
-	magic := encodePrefix(subjectId)
-
-	bin, err := codec.BinaryFromNative(magic, native)
-	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`binary from native failed for schema [%d]`, subjectId))
-	}
-
-	return bin, nil
-}
-
-func encodeHamba(subjectId int, schema string, data interface{}) ([]byte, error) {
+func encode(subjectId int, schema string, data interface{}) ([]byte, error) {
 	sch, err := avro.Parse(schema)
 	if err != nil {
 		return nil, errors.WithPrevious(err, fmt.Sprintf(`parse error for schema [%d]`, subjectId))
@@ -117,45 +99,5 @@ func decode(encoders map[int]*Encoder, data []byte) (interface{}, error) {
 		return nil, errors.New(fmt.Sprintf(`schema id [%d] dose not registred`, schemaID))
 	}
 
-	native, _, err := encoder.codec.NativeFromBinary(data[5:])
-	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from binary for schema id [%d] failed`, schemaID))
-	}
-
-	byt, err := encoder.codec.TextualFromNative(nil, native)
-	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`textual from native for schema id [%d] failed`, schemaID))
-	}
-
-	if encoder.subject.JsonDecoder == nil {
-		return nil, errors.New(fmt.Sprintf(`json decoder does not exist for schema id %d`, schemaID))
-	}
-
-	return encoder.subject.JsonDecoder(byt)
-}
-
-// decode returns the decoded go interface of avro encoded message and error if its unable to decode
-func decodeHamba(encoders map[int]*Encoder, data []byte) (interface{}, error) {
-	if len(data) < 5 {
-		return nil, errors.New(`message length is zero`)
-	}
-
-	schemaID := decodePrefix(data)
-
-	encoder, ok := encoders[schemaID]
-	if !ok {
-		return nil, errors.New(fmt.Sprintf(`schema id [%d] dose not registred`, schemaID))
-	}
-
-	//native, _, err := encoder.codec.NativeFromBinary(data[5:])
-	schema, err := avro.Parse(encoder.Schema())
-	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`native from binary for schema id [%d] failed`, schemaID))
-	}
-	var v interface{}
-	err = encoder.api.Unmarshal(schema, data[5:], &v)
-	if err != nil {
-		return nil, errors.WithPrevious(err, fmt.Sprintf(`data unmarshal error, schema : [%d] failed`, schemaID))
-	}
-	return v, nil
+	return encoder.subject.AvroDecoder(encoder, data[5:])
 }
