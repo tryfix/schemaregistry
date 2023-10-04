@@ -10,7 +10,7 @@ package main
 import (
 	"time"
 
-	"github.com/HADLakmal/schemaregistry"
+	"github.com/HADLakmal/schemaregistry/v2"
 	"github.com/tryfix/log"
 )
 
