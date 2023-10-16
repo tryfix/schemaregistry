@@ -141,16 +141,16 @@ func (s *backgroundSync) apply(keyByt []byte, valByt []byte) {
 			if prv := previous(value.Version, encoder); prv != nil {
 
 				// assume this is only an encoder
-				if prv.subject.AvroDecoder == nil {
+				if prv.subject.UnmarshalerFunc == nil {
 					return
 				}
 
 				e := NewEncoder(s.registry, &Subject{
-					Subject:     value.Subject,
-					Version:     value.Version,
-					Schema:      value.Schema,
-					Id:          value.Id,
-					AvroDecoder: prv.subject.AvroDecoder,
+					Subject:         value.Subject,
+					Version:         value.Version,
+					Schema:          value.Schema,
+					Id:              value.Id,
+					UnmarshalerFunc: prv.subject.UnmarshalerFunc,
 				})
 
 				encoder[value.Version] = e

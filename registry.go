@@ -35,15 +35,15 @@ func (v Version) String() string {
 	return fmt.Sprint(int(v))
 }
 
-type avroDecoder func(decoder AvroDecoder, data []byte) (v interface{}, err error)
+type UnmarshalerFunc func(unmarshaler Unmarshaler) (v interface{}, err error)
 
 // Subject holds the Schema information of the registered subject
 type Subject struct {
-	Schema      string      `json:"schema"`  // The actual AVRO subject
-	Subject     string      `json:"subject"` // Subject where the subject is registered for
-	Version     int         `json:"version"` // Version within this subject
-	Id          int         `json:"id"`      // Registry's unique id
-	AvroDecoder avroDecoder `json:"avro_decoder"`
+	Schema          string          `json:"schema"`  // The actual AVRO subject
+	Subject         string          `json:"subject"` // Subject where the subject is registered for
+	Version         int             `json:"version"` // Version within this subject
+	Id              int             `json:"id"`      // Registry's unique id
+	UnmarshalerFunc UnmarshalerFunc `json:"avro_decoder"`
 }
 
 type options struct {
@@ -113,7 +113,7 @@ func NewRegistry(url string, opts ...Option) (*Registry, error) {
 }
 
 // Register registers the given subject, version and JSON value decoder to the Registry
-func (r *Registry) Register(subject string, version int, decoder avroDecoder) error {
+func (r *Registry) Register(subject string, version int, unmarshalerFunc UnmarshalerFunc) error {
 	if _, ok := r.schemas[subject]; ok {
 		if _, ok := r.schemas[subject][version]; ok {
 			r.logger.Warn(`schemaregistry.registry`, fmt.Sprintf(`subject [%s][%s] already registred`, subject, Version(version)))
@@ -126,7 +126,7 @@ func (r *Registry) Register(subject string, version int, decoder avroDecoder) er
 			return err
 		}
 		for _, v := range versions {
-			if err := r.Register(subject, v, decoder); err != nil {
+			if err := r.Register(subject, v, unmarshalerFunc); err != nil {
 				return err
 			}
 		}
@@ -151,11 +151,11 @@ func (r *Registry) Register(subject string, version int, decoder avroDecoder) er
 	}
 
 	s := &Subject{
-		Schema:      clientSub.Schema,
-		Id:          clientSub.ID,
-		Version:     clientSub.Version,
-		Subject:     clientSub.Subject,
-		AvroDecoder: decoder,
+		Schema:          clientSub.Schema,
+		Id:              clientSub.ID,
+		Version:         clientSub.Version,
+		Subject:         clientSub.Subject,
+		UnmarshalerFunc: unmarshalerFunc,
 	}
 
 	if r.schemas[subject] == nil {
@@ -224,7 +224,7 @@ func (r *Registry) WithLatestSchema(subject string) *Encoder {
 
 func (r *Registry) GenericEncoder() *GenericEncoder {
 	return &GenericEncoder{
-		registry: r,
+		Encoder: NewEncoder(r, nil),
 	}
 }
 
@@ -241,7 +241,7 @@ func (r *Registry) Print() {
 				fmt.Sprint(version.subject.Id),
 				fmt.Sprint(version.subject.Subject),
 				fmt.Sprint(Version(version.subject.Version)),
-				fmt.Sprint(version.subject.AvroDecoder != nil),
+				fmt.Sprint(version.subject.UnmarshalerFunc != nil),
 				//fmt.Sprint(version.subject.Schema),
 			})
 		}
