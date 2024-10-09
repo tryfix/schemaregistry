@@ -21,7 +21,7 @@ Following code line register an event `com.pickme.events.test` with version `1`
 ```go
 import schemaregistry "github.com/tryfix/schemaregistry"
 
-registry.Register(`com.pickme.events.test`, 1, func(data []byte) (v interface{}, err error)
+registry.Register(`com.organisation.events.test`, 1, func(data []byte) (v interface{}, err error)
 ```
 
 Dynamically sync schema's from kafka schema data topic
@@ -34,11 +34,11 @@ registry.Sync()
 
 Message Structure
 -----------------
-Avro encoded events are published with magic byte and schema Id added to it. 
+Encoded messages are published with magic byte and a schema ID attached to it.
 Following structure shows the message format used in the library to encode the message. 
 
     +====================+====================+======================+
-    | Magic byte(1 byte) | Schema ID(4 bytes) | AVRO encoded message |
+    | Magic byte(1 byte) | Schema ID(4 bytes) | Payload              |
     +====================+====================+======================+
 
 ToDo
