@@ -5,10 +5,11 @@ go 1.21
 require (
 	github.com/hamba/avro/v2 v2.26.0
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/pkg/errors v0.9.1
 	github.com/riferrei/srclient v0.7.0
 	github.com/tryfix/errors v1.0.0
 	github.com/tryfix/log v1.2.1
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.1
 )
 
 require (
