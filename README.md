@@ -14,24 +14,66 @@ Following code slice create a schema registry client
 ```go
 import schemaregistry "github.com/tryfix/schemaregistry"
 
-registry, _ := schemaregistry.NewRegistry(`localhost:8089/`)
+registry, _ := NewRegistry(
+		`http://localhost:8081/`,
+		WithLogger(log.NewLog().Log(log.WithLevel(log.TRACE))),
+		WithBackgroundSync(5*time.Second),
+	)
 ```
 
-Following code line register an event `com.pickme.events.test` with version `1`
+Following code line register an event `com.example.events.test` with version `1`
 ```go
 import schemaregistry "github.com/tryfix/schemaregistry"
 
-registry.Register(`com.organisation.events.test`, 1, func(data []byte) (v interface{}, err error)
-```
+if err := registry.Register(`com.example.events.test`, 1, func(unmarshaler Unmarshaler) (v interface{}, err error) {
+		record := SampleRecord{}
+		if err := unmarshaler.Unmarshal(&record); err != nil {
+			return nil, err
+		}
 
-Dynamically sync schema's from kafka schema data topic
+		return record, nil
+	}); err != nil {
+		log.Fatal(err)
+	}
+```
+Message encoding/decoding using above registered schema 
 ```go
-import schemaregistry "github.com/tryfix/schemaregistry"
+// avro message structure
+type SampleRecord struct {
+		Field1 int     `avro:"field1"`
+		Field2 float64 `avro:"field2"`
+		Field3 string  `avro:"field3"`
+	}
+// get encoder  
+encoder := registry.WithSchema(`com.example.events.test`, 1)
 
-registry, _ := schemaregistry.NewRegistry(`localhost:8089/`,schemaregistry.WithBackgroundSync([]string{`localhost:9092`}, `__schemas`))
-registry.Sync()
+// sample message
+	record := SampleRecord{
+		Field1: 1,
+		Field2: 2.0,
+		Field3: "text",
+	}
+// message encode to byte array
+bytePayload, err := encoder.Encode(record)
+if err!=nil {
+    panic(err)
+}
+
+// decode message
+ev, err := encoder.Decode(bytePayload) // Returns SampleRecord
+	if err != nil {
+		panic(err)
+	}
+    fmt.Printf("%+v", ev)
 ```
-
+message can be decoded through generic encoder as below 
+```go
+// Decode message as generic encoder
+	ev, err := registry.GenericEncoder().Decode(bytePayload) // Returns SampleRecord
+	if err != nil {
+		panic(err)
+	}
+```
 Message Structure
 -----------------
 Encoded messages are published with magic byte and a schema ID attached to it.

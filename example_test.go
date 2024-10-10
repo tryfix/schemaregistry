@@ -2,10 +2,11 @@ package schema_registry
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/riferrei/srclient"
 	"github.com/tryfix/log"
 	com_mycorp_mynamespace "github.com/tryfix/schemaregistry/v2/protobuf"
-	"time"
 )
 
 func Example_avro() {
