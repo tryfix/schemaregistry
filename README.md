@@ -12,7 +12,7 @@ Download library using `go get -u github.com/tryfix/schema-registry/v2`
 
 Following code slice create a schema registry client 
 ```go
-import schemaregistry "github.com/tryfix/schemaregistry"
+import schemaregistry "github.com/tryfix/schemaregistry/v2"
 
 registry, _ := NewRegistry(
 		`http://localhost:8081/`,
@@ -22,7 +22,7 @@ registry, _ := NewRegistry(
 
 Register an event `com.example.events.test` with version `1`
 ```go
-import schemaregistry "github.com/tryfix/schemaregistry"
+import schemaregistry "github.com/tryfix/schemaregistry/v2"
 
 if err := registry.Register(`com.example.events.test`, 1, func(unmarshaler Unmarshaler) (v interface{}, err error) {
 		record := SampleRecord{}
