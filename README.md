@@ -8,7 +8,7 @@ schema dynamic sync directly from kafka topic.
 
 Client
 ------
-Download library using `go get -u github.com/tryfix/schema-registry`
+Download library using `go get -u github.com/tryfix/schema-registry/v2`
 
 Following code slice create a schema registry client 
 ```go
