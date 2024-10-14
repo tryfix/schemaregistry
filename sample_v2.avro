@@ -1,0 +1,24 @@
+{
+		"type": "record",
+		"name": "SampleRecord",
+		"namespace": "com.mycorp.mynamespace",
+		"fields": [
+			{
+				"name": "field1",
+				"type": "int"
+			},
+			{
+				"name": "field2",
+				"type": "double"
+			},
+			{
+				"name": "field3",
+				"type": "string"
+			},
+			{
+				"name": "field4",
+				"type": "string",
+				"default": ""
+			}
+		]
+	}

@@ -5,30 +5,34 @@
  *    Gayan Yapa (gmbyapa@gmail.com)
  */
 
-package schemaregistry
+package schema_registry
 
-// Encoder holds the reference to Registry and Subject which can be used to encode and decode messages
+// GenericEncoder holds the reference to Registry and Subject which can be used to decode messages
+//
+// if err := registry.Register(`test-subject-avro`, schemaregistry.VersionAll,
+//
+//		func(unmarshaler schemaregistry.Unmarshaler) (v interface{}, err error) {
+//	    re := SampleRecord{}
+//	    if err := unmarshaler.Unmarshal(&re); err != nil {
+//	        return nil, err
+//	    }
+//
+//	    return re, nil
+//	}); err != nil {
+//
+//	    log.Fatal(err)
+//	}
+//
+//	// Encode logic...
+//
+//	ev, err := registry.GenericEncoder().Decode(payload) // Returns SampleRecord
+//	if err != nil {
+//	    panic(err)
+//	}
 type GenericEncoder struct {
-	registry *Registry
+	Encoder
 }
 
-// NewEncoder return the pointer to a Encoder for given Subject from the Registry
-func NewGenericEncoder(reg *Registry) (*Encoder, error) {
-	return &Encoder{
-		registry: reg,
-	}, nil
-}
-
-func (s *GenericEncoder) Encode(data interface{}) ([]byte, error) {
+func (s *GenericEncoder) Encode(_ interface{}) ([]byte, error) {
 	panic(`generic encoder does not support encoding of messages`)
-}
-
-// Decode returns the decoded go interface of avro encoded message and error if its unable to decode
-func (s *GenericEncoder) Decode(data []byte) (interface{}, error) {
-	return decode(s.registry.idMap, data)
-}
-
-//Schema return the subject asociated with the Encoder
-func (s *GenericEncoder) Schema() string {
-	return `generic`
 }
