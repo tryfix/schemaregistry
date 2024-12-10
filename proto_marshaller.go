@@ -5,7 +5,7 @@
  *    Gayan Yapa (gmbyapa@gmail.com)
  */
 
-package schema_registry
+package schemaregistry
 
 import (
 	"github.com/pkg/errors"

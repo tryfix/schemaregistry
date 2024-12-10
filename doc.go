@@ -15,4 +15,5 @@ Avro: http://avro.apache.org/docs/current/
 
 Protobuf: https://protobuf.dev/programming-guides/encoding/
 */
-package schema_registry
+
+package schemaregistry
