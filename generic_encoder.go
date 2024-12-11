@@ -5,7 +5,7 @@
  *    Gayan Yapa (gmbyapa@gmail.com)
  */
 
-package schema_registry
+package schemaregistry
 
 // GenericEncoder holds the reference to Registry and Subject which can be used to decode messages
 //

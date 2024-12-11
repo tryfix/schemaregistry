@@ -1,9 +1,10 @@
-package schema_registry
+package schemaregistry
 
 import (
 	"bytes"
 	"fmt"
 	"github.com/tryfix/errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -100,12 +101,15 @@ func WithMockClient(client *registry.MockSchemaRegistryClient) Option {
 // NewRegistry returns a Registry instance
 func NewRegistry(url string, opts ...Option) (*Registry, error) {
 	options := new(Options)
+	options.logger = log.NewNoopLogger()
+	options.backgroundSync.syncInterval = 10 * time.Second
+
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	if options.logger == nil {
-		options.logger = log.NewNoopLogger()
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		url = "http://" + url
 	}
 
 	var client registry.ISchemaRegistryClient = registry.NewSchemaRegistryClient(url)
