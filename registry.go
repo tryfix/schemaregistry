@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/tryfix/errors"
+	"strings"
 	"sync"
 	"time"
 
@@ -105,6 +106,10 @@ func NewRegistry(url string, opts ...Option) (*Registry, error) {
 
 	for _, opt := range opts {
 		opt(options)
+	}
+
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		url = "http://" + url
 	}
 
 	var client registry.ISchemaRegistryClient = registry.NewSchemaRegistryClient(url)
