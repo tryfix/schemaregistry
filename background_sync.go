@@ -30,7 +30,7 @@ func Sync(syncInterval time.Duration, logger log.Logger, registry *Registry) err
 		}
 	}()
 
-	sync.logger.Debug(`New Schema check background routine started`)
+	sync.logger.Debug(fmt.Sprintf(`New Schema check background routine started. Interval - %s`, sync.syncInterval))
 
 	return nil
 

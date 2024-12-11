@@ -8,7 +8,7 @@
 package schemaregistry
 
 import (
-	"github.com/pkg/errors"
+	"github.com/tryfix/errors"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -36,11 +36,11 @@ func (s *ProtoMarshaller) NewUnmarshaler(data []byte) Unmarshaler {
 func (s *ProtoUnmarshaler) Unmarshal(in interface{}) error {
 	wrapper := &anypb.Any{}
 	if err := proto.Unmarshal(s.data, wrapper); err != nil {
-		return errors.Wrap(err, "failed to unmarshal anypb wrapper")
+		return errors.WithPrevious(err, "failed to unmarshal anypb wrapper")
 	}
 
 	if err := anypb.UnmarshalTo(wrapper, in.(proto.Message), proto.UnmarshalOptions{}); err != nil {
-		return errors.Wrap(err, "failed to unmarshal anypb")
+		return errors.WithPrevious(err, "failed to unmarshal anypb")
 	}
 
 	return nil
@@ -49,12 +49,12 @@ func (s *ProtoUnmarshaler) Unmarshal(in interface{}) error {
 func (s *ProtoMarshaller) Marshall(v interface{}) ([]byte, error) {
 	anyPB, err := anypb.New(v.(proto.Message))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to add message into anypb")
+		return nil, errors.WithPrevious(err, "failed to add message into anypb")
 	}
 
 	value, err := proto.Marshal(anyPB)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal message into anypb")
+		return nil, errors.WithPrevious(err, "failed to marshal message into anypb")
 	}
 
 	return value, nil

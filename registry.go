@@ -100,12 +100,11 @@ func WithMockClient(client *registry.MockSchemaRegistryClient) Option {
 // NewRegistry returns a Registry instance
 func NewRegistry(url string, opts ...Option) (*Registry, error) {
 	options := new(Options)
+	options.logger = log.NewNoopLogger()
+	options.backgroundSync.syncInterval = 10 * time.Second
+
 	for _, opt := range opts {
 		opt(options)
-	}
-
-	if options.logger == nil {
-		options.logger = log.NewNoopLogger()
 	}
 
 	var client registry.ISchemaRegistryClient = registry.NewSchemaRegistryClient(url)
