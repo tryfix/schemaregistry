@@ -108,7 +108,7 @@ func NewRegistry(url string, opts ...Option) (*Registry, error) {
 		opt(options)
 	}
 
-	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+	if !(strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")) {
 		url = "http://" + url
 	}
 
