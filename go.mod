@@ -1,4 +1,4 @@
-module github.com/tryfix/schemaregistry/v2
+module github.com/ashans/schemaregistry/v2
 
 go 1.22.0
 
