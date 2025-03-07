@@ -132,7 +132,8 @@ func NewRegistry(url string, opts ...Option) (*Registry, error) {
 }
 
 // Register registers the given subject, version and UnmarshalerFunc in the Registry
-func (r *Registry) Register(subjectName string, version Version, unmarshalerFunc UnmarshalerFunc) error {
+func (r *Registry) Register(subjectName string, version Version, unmarshalerFunc UnmarshalerFunc,
+	options ...RegisterOption) error {
 	if _, ok := r.subjects[subjectName]; ok {
 		if _, ok := r.subjects[subjectName][version]; ok {
 			r.logger.Warn(fmt.Sprintf(`Subject [%s][%s] already registred`, subjectName, version))
@@ -178,6 +179,10 @@ func (r *Registry) Register(subjectName string, version Version, unmarshalerFunc
 	}
 
 	subject.marsheller = r.getMarshaller(clientSub.SchemaType(), clientSub.Schema())
+
+	for _, option := range options {
+		option(subject)
+	}
 
 	if err := subject.marsheller.Init(); err != nil {
 		return errors.WithPrevious(err, fmt.Sprintf(`Initiating Marshaller for schema %s:%s failed.`, subject, version))
@@ -377,4 +382,12 @@ func (r *Registry) Print(subject *Subject) {
 
 	table.Render()
 	r.logger.Info(fmt.Sprintf("Schemas\n%s", b.String()))
+}
+
+type RegisterOption func(*Subject)
+
+func WithUnmarshaler(marshaller Marshaller) RegisterOption {
+	return func(subject *Subject) {
+		subject.marsheller = marshaller
+	}
 }
