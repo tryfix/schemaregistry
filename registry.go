@@ -146,7 +146,7 @@ func (r *Registry) Register(subjectName string, version Version, unmarshalerFunc
 			return errors.WithPrevious(err, fmt.Sprintf(`Fetching schema versions for %s:%s failed.`, subjectName, version))
 		}
 		for _, v := range versions {
-			if err := r.Register(subjectName, Version(v), unmarshalerFunc); err != nil {
+			if err := r.Register(subjectName, Version(v), unmarshalerFunc, options...); err != nil {
 				return err
 			}
 		}
