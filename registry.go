@@ -386,8 +386,8 @@ func (r *Registry) Print(subject *Subject) {
 
 type RegisterOption func(*Subject)
 
-func WithUnmarshaler(marshaller Marshaller) RegisterOption {
+func WithUnmarshaler(marshallerProvider func(schema string) Marshaller) RegisterOption {
 	return func(subject *Subject) {
-		subject.marsheller = marshaller
+		subject.marsheller = marshallerProvider(subject.Schema)
 	}
 }
